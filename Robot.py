@@ -223,6 +223,7 @@ class Robot(Objet):
         Retourne:
             Le score de la trajectoire
         """
+        pass
     
-    
+
         
