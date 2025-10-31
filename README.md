@@ -8,12 +8,21 @@ Aucune libraire dédiée à la robotique n'est utilisée.
 Réalisation : 
 - Calcul MGI/MGD : ✓
     -> Obtenue par méthode analytique
+
 - Simulation cinématique d'une patte : ✓
     -> Prise en compte du domaine temporelle
+
 - Simulation cinématique du robot : ✓
-- Création & suivi des trajectoires par les pattes : ✓ (avec synchronisation)
+
+  
+- Création & suivi des trajectoires par les pattes : ✓
+
     -> Exportation possible en .csv
+    -> Synchronisation des pattes prise en compte
+
 - Visualisation des trajectoires des pattes : ✓
     -> Visualisation dynamique de la trajectoire possible sous forme de gif générer, visualisation statique disponible pour une patte ou tout le robot
+
 - Méthode d'évaluation des trajectoires des pattes : A FAIRE
+  
 - Génération de la meilleure trajectoire (par algorithme) : A FAIRE
