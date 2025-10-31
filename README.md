@@ -5,6 +5,8 @@ Objectif : Réaliser la génération de la trajectoire d'un robot quadrupède qu
 
 Aucune libraire dédiée à la robotique n'est utilisée.
 
+<image src="traj.gif"  />
+
 Réalisation : 
 - Calcul MGI/MGD : ✓ </br>
     -> Obtenue par méthode analytique 
