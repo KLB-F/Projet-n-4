@@ -6,22 +6,22 @@ Objectif : Réaliser la génération de la trajectoire d'un robot quadrupède qu
 Aucune libraire dédiée à la robotique n'est utilisée.
 
 Réalisation : 
-- Calcul MGI/MGD : ✓
-    -> Obtenue par méthode analytique
+- Calcul MGI/MGD : ✓ </br>
+    -> Obtenue par méthode analytique 
 
-- Simulation cinématique d'une patte : ✓
-    -> Prise en compte du domaine temporelle
+- Simulation cinématique d'une patte : ✓</br>
+    -> Prise en compte du domaine temporelle 
 
-- Simulation cinématique du robot : ✓
+- Simulation cinématique du robot : ✓</br>
 
   
-- Création & suivi des trajectoires par les pattes : ✓
+- Création & suivi des trajectoires par les pattes : ✓ </br>
 
     -> Exportation possible en .csv
-    -> Synchronisation des pattes prise en compte
+    -> Synchronisation des pattes prise en compte 
 
-- Visualisation des trajectoires des pattes : ✓
-    -> Visualisation dynamique de la trajectoire possible sous forme de gif générer, visualisation statique disponible pour une patte ou tout le robot
+- Visualisation des trajectoires des pattes : ✓ </br>
+    -> Visualisation dynamique de la trajectoire possible sous forme de gif générer, visualisation statique disponible pour une patte ou tout le robot 
 
 - Méthode d'évaluation des trajectoires des pattes : A FAIRE
   
