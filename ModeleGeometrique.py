@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 class ModeleGeometrique():
-    def __init__(self, l1, l2, l3):
+    def __init__(self, l1:float, l2:float, l3:float):
         """
         Permet d'initialiser le modèle géométrique
         
@@ -28,13 +28,13 @@ class ModeleGeometrique():
         Retourne : 
             X_trace
         """
-        return [matrix([
+        return [np.matrix([
 [0],
 [0],
-[0]]), matrix([
+[0]]), np.matrix([
 [self.l1*cos(q1)],
 [self.l1*sin(q1)],
-[         0]]), matrix([
+[         0]]), np.matrix([
 [self.l1*cos(q1) + self.l2*cos(q1)*cos(q2)],
 [self.l1*sin(q1) + self.l2*sin(q1)*cos(q2)],
 [                    -self.l2*sin(q2)]]), [(self.l1 + self.l2*cos(q2) + self.l3*cos(q2 + q3))*cos(q1), (self.l1 + self.l2*cos(q2) + self.l3*cos(q2 + q3))*sin(q1), -self.l2*sin(q2) - self.l3*sin(q2 + q3)]]
@@ -74,9 +74,9 @@ class ModeleGeometrique():
         
         ax.view_init(elev=45, azim=45) # réglages de la vue 3D
         
-        ax.set_xlabel("X (m)")
-        ax.set_ylabel("Y (m)")
-        ax.set_zlabel("Z (m)")
+        ax.set_xlabel("X (dm)")
+        ax.set_ylabel("Y (dm)")
+        ax.set_zlabel("Z (dm)")
         plt.show()
         
     def MGI(self, x, y, z):
@@ -91,14 +91,13 @@ class ModeleGeometrique():
         
         q1 = np.arctan2(y, x)
         
-        T10 = matrix([[cos(q1), sin(q1), 0, -self.l1],[-sin(q1), cos(q1), 0, 0 ],[0, 0, 1, 0 ],[0, 0, 0, 1 ]])
+        T10 = matrix([[cos(q1), sin(q1), 0, -self.l1],[-sin(q1), cos(q1), 0, 0 ],[0, 0, 1, 0],[0, 0, 0, 1 ]])
         #T10 = np.linalg.inv(matrix([[cos(q1), -sin(q1), 0, 0], [sin(q1), cos(q1), 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])@matrix([[1, 0, 0, self.l1], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
         xp, yp, zp = (T10@np.transpose(matrix([x, y, z, 1])))[:-1] #On passe dans la base 1
         xp, yp, zp = float(xp), float(yp), float(zp)
         
-        
-        q3 = np.arccos((xp**2+zp**2-self.l2**2-self.l3**2)/(2*self.l2*self.l3)) #Choix de configuration possible
+        q3 = np.arccos(max(min(1,(xp**2+zp**2-self.l2**2-self.l3**2)/(2*self.l2*self.l3)), -1)) #Choix de configuration possible + On met des min et max pour que la valeur soit dans [-1, 1] car dans certains cas python donne par exemple 1.0000000022 > 1 -> Erreur
         q2 = +np.arctan2(zp, xp)+np.arctan2(self.l3*np.sin(q3), self.l2+self.l3*np.cos(q3))
         return q1, -q2, q3
     

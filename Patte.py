@@ -3,6 +3,7 @@ from Objet import Objet
 from Moteur import Moteur
 from Trajectoire import Trajectoire
 
+import csv
 import numpy as np
 
 """
@@ -10,7 +11,7 @@ Classe Patte du robot, qui s'occupe de simuler une patte
 """
 
 class Patte(Objet, ModeleGeometrique):
-    def __init__(self, l1, l2, l3, Tbase:[[float]*4], m1:Moteur, m2:Moteur, m3:Moteur):
+    def __init__(self, l1:float, l2:float, l3:float, Tbase:[[float]*4], m1:Moteur, m2:Moteur, m3:Moteur):
         """
         Initalise la patte
 
@@ -26,7 +27,7 @@ class Patte(Objet, ModeleGeometrique):
         self.M1, self.M2, self.M3 = m1, m2, m3
         
         self.Straj = None #Trajectoire suivie : Aucune au début
-        self.posStraj = ["AEP", 0] #Rendue dans le suivie de la trajectoire
+        self.posStraj = [True, 0, False, False] #Rendue dans le suivie de la trajectoire
         
         # Inutile a priori #self.q1, self.q2, self.q3 = self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()
         
@@ -72,47 +73,77 @@ class Patte(Objet, ModeleGeometrique):
         
         #Suivie de trajectoire
         if self.Straj != None:
-            if self.posStraj[0] == "AEP":
-                if np.linalg.norm(np.array(self.MGD(self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()))-np.array(self.Straj.getAEP()[self.posStraj[1]])) < 0.001:
-                    #On passe à la prochaine position
-                    if self.posStraj[1] < len(self.Straj.getAEP())-1:
-                        self.posStraj[1] += 1
-                        self.setObjEffecteurRel(*self.Straj.getAEP()[self.posStraj[1]])
-                    else:
-                        self.posStraj = ["PEP", 0]
-                        self.setObjEffecteurRel(*self.Straj.getPEP()[0])
-            elif self.posStraj[0] == "PEP":
-                if np.linalg.norm(np.array(self.MGD(self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()))-np.array(self.Straj.getPEP()[self.posStraj[1]])) < 0.001:
-                    #On passe à la prochaine position
-                    if self.posStraj[1] < len(self.Straj.getPEP())-1:
-                        self.posStraj[1] += 1
-                        self.setObjEffecteurRel(*self.Straj.getPEP()[self.posStraj[1]])
-                    else:
-                        self.posStraj = ["PEPP", 0]
-                        self.setObjEffecteurRel(*self.Straj.getPEPP()[0])
-            elif self.posStraj[0] == "PEPP":
-                if np.linalg.norm(np.array(self.MGD(self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()))-np.array(self.Straj.getPEPP()[self.posStraj[1]])) < 0.001:
-                    #On passe à la prochaine position
-                    if self.posStraj[1] < len(self.Straj.getPEPP())-1:
-                        self.posStraj[1] += 1
-                        self.setObjEffecteurRel(*self.Straj.getPEPP()[self.posStraj[1]])
-                    else:
-                        self.posStraj = ["AEPP", 0]
-                        self.setObjEffecteurRel(*self.Straj.getAEPP()[0])
-            elif self.posStraj[0] == "AEPP":
-                if np.linalg.norm(np.array(self.MGD(self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()))-np.array(self.Straj.getAEPP()[self.posStraj[1]])) < 0.001:
-                    #On passe à la prochaine position
-                    if self.posStraj[1] < len(self.Straj.getAEPP())-1:
-                        self.posStraj[1] += 1
-                        self.setObjEffecteurRel(*self.Straj.getAEPP()[self.posStraj[1]])
-                    else:
-                        self.posStraj = ["AEP", 0]
-                        self.setObjEffecteurRel(*self.Straj.getAEP()[self.posStraj[1]])
-            
+              if np.linalg.norm(np.array(self.Straj.getTraj()[self.posStraj[1]])-np.array(self.MGD(self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()))) < 0.01: #Distance < epsilon
+                  posFut = self.posStraj[1] + 1
+                  if len(self.Straj.getTraj())-1 < posFut:
+                      posFut = 0
+                  
+                  futBP = self.Straj.getBP()[posFut]
+                  if futBP == True and self.posStraj[0] == False:
+                      self.posStraj[3] = True
+                  elif futBP == False and self.posStraj[0] == True:
+                      if self.posStraj[2] == False: 
+                          return None
+                      self.posStraj[2] = False
+                      self.posStraj[3] = False
+                      
+                  self.posStraj[1] = posFut                      
+                  self.posStraj[0] = futBP
+                  self.setObjEffecteurRel(*self.Straj.getTraj()[self.posStraj[1]])
+        
+    
     def getPosAngMot(self):
         """ Retourne la position angulaire de chaque moteur (q1, q2, q3) """
         return self.M1.get_PosAng(), self.M2.get_PosAng(), self.M3.get_PosAng()
     
-    def traj_Suivie(self, trajectoire:Trajectoire):
+    def traj_Suivie(self, trajectoire:Trajectoire, decalage=False):
+        """
+        Permet de faire suivre une trajectoire au Robot
+        
+        Paramètres : 
+            Trajectoire : la trajectoire à suivre
+            decalage : permet de fixer s'il y a un décalage
+        """
         self.Straj = trajectoire
-        self.setObjEffecteurRel(*self.Straj.getAEP()[0])
+        
+        if decalage == False:
+              self.setObjEffecteurRel(*self.Straj.getTraj()[0])
+        else:
+            #Trouve le dernier RP
+            maxi = 0 #Hypothèse maxi > 0
+            for i in range(len(self.Straj.getBP())):
+                if self.Straj.getBP()[i] == True:
+                    maxi = i
+            self.posStraj[1] = maxi
+            self.setObjEffecteurRel(*self.Straj.getTraj()[maxi])
+            self.posStraj[3] = True
+        
+    def signal_setRP(self, signal:bool) -> None:
+        """ Permet d'indiquer si elle à le droit de commencer son mouvement de RP"""
+        self.posStraj[2] = signal
+    
+    def signal_getTN(self) -> bool:
+        """ Indique si la patte à finie son mouvement de TN"""
+        return self.posStraj[3]
+
+    def signal_getRP(self) -> bool:
+        return self.posStraj[0]        
+        
+    def patte_exportTraj(self, NomFichier:str):
+        """ Permet d'exporter la trajectoire de la patte
+        
+        Paramètres : 
+            - NomFichier : Le nom du fichier
+        Retourne : 
+            - Un fichier csv portant le nom donné et contenant les information de la trajectoire
+        """
+        R = []
+        for i in range(len(self.Straj.getTraj())):
+            R.append(list(self.MGI(*self.Straj.getTraj()[i]))+[self.Straj.getBP()[i]])
+        
+        with open(NomFichier+".csv", 'w', newline='') as csvFichier:
+            ecriture = csv.writer(csvFichier, delimiter=';',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            ecriture.writerows(R)
+        
+        
+        

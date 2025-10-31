@@ -6,13 +6,15 @@ from Patte import Patte
 from Moteur import Moteur
 from Trajectoire import Trajectoire
 import numpy as np
+from PIL import Image
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
 
 class Robot(Objet):
-    def __init__(self, l1, l2, l3):
+    def __init__(self, l1:float, l2:float, l3:float):
         """
         Paramètres :
             l1, l2, l3 : les longueurs caractéristiques des pattes du robot
@@ -48,22 +50,19 @@ class Robot(Objet):
     def getPos():
         return [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0 , 1]]
     
-    def aff_PosRobot(self, q):
+    def __aff_RobotInt(self, q:[float]):
         """
-        Affiche le robot en fonction des coordonnés articulaires q = [qHD, qHG, qBD, qBG] 
+        Fonction intermediaire commune à aff_PosRobot & aff_RobotAnim
+        
+        Paramètre :
+            q = [qHD, qHG, qBD, qBG]
         Où : qXY désigne les coordonnés articulaite de la patte XY
             H -> Haut; B -> Bas
             D -> Droite; G -> Gauche
+            
+        
         """
         qHD1, qHD2, qHD3, qHG1, qHG2, qHG3, qBD1, qBD2, qBD3, qBG1, qBG2, qBG3 = q
-        fig = plt.figure()
-        ax = Axes3D(fig, auto_add_to_figure=False)
-        ax_echelle = 5
-        ax.axes.set_xlim3d(left=-ax_echelle, right=ax_echelle)
-        ax.axes.set_ylim3d(bottom=-ax_echelle, top=ax_echelle)
-        ax.axes.set_zlim3d(bottom=-2, top=1)
-        fig.add_axes(ax)
-        
         x = [self.d1-self.e1, self.d1, self.d1, self.d1-self.e1, -self.d1+self.e1, -self.d1, -self.d1, self.e1-self.d1, self.d1-self.e1]
         y = [self.d2, self.d2-self.e2, -self.d2+self.e2, -self.d2, -self.d2, -self.d2+self.e2, self.d2-self.e2, self.d2, self.d2]
         z = [0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -74,12 +73,9 @@ class Robot(Objet):
             #print([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1])
             X_trace[i] = ((self.PatteHD.getPos()*np.transpose(np.matrix([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1]))))[:-1]
         
-        xs = [float(p[0]) for p in X_trace]
-        ys = [float(p[1]) for p in X_trace]
-        zs = [float(p[2]) for p in X_trace]
-        
-        ax.plot(xs, ys, zs, '-k', linewidth=3, markersize=6)
-        ax.plot(xs, ys, zs, 'or', linewidth=3, markersize=6)
+        xsHD = [float(p[0]) for p in X_trace]
+        ysHD = [float(p[1]) for p in X_trace]
+        zsHD = [float(p[2]) for p in X_trace]
         
         #Patte Gauche Haute
         X_trace = self.PatteHG.X_trace(qHG1, qHG2, qHG3)
@@ -87,12 +83,9 @@ class Robot(Objet):
             #print([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1])
             X_trace[i] = ((self.PatteHG.getPos()*np.transpose(np.matrix([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1]))))[:-1]
         
-        xs = [float(p[0]) for p in X_trace]
-        ys = [float(p[1]) for p in X_trace]
-        zs = [float(p[2]) for p in X_trace]
-        
-        ax.plot(xs, ys, zs, '-k', linewidth=3, markersize=6)
-        ax.plot(xs, ys, zs, 'or', linewidth=3, markersize=6)
+        xsHG = [float(p[0]) for p in X_trace]
+        ysHG = [float(p[1]) for p in X_trace]
+        zsHG = [float(p[2]) for p in X_trace]
         
         #Patte Droite Basse
         X_trace = self.PatteBD.X_trace(qBD1, qBD2, qBD3)
@@ -100,12 +93,9 @@ class Robot(Objet):
             #print([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1])
             X_trace[i] = ((self.PatteBD.getPos()*np.transpose(np.matrix([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1]))))[:-1]
         
-        xs = [float(p[0]) for p in X_trace]
-        ys = [float(p[1]) for p in X_trace]
-        zs = [float(p[2]) for p in X_trace]
-        
-        ax.plot(xs, ys, zs, '-k', linewidth=3, markersize=6)
-        ax.plot(xs, ys, zs, 'or', linewidth=3, markersize=6)
+        xsBD = [float(p[0]) for p in X_trace]
+        ysBD = [float(p[1]) for p in X_trace]
+        zsBD = [float(p[2]) for p in X_trace]
         
         #Patte Gauche Basse
         X_trace = self.PatteBG.X_trace(qBG1, qBG2, qBG3)
@@ -113,16 +103,126 @@ class Robot(Objet):
             #print([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1])
             X_trace[i] = ((self.PatteBG.getPos()*np.transpose(np.matrix([float(X_trace[i][j]) for j in range(len(X_trace[i]))]+[1]))))[:-1]
         
-        xs = [float(p[0]) for p in X_trace]
-        ys = [float(p[1]) for p in X_trace]
-        zs = [float(p[2]) for p in X_trace]
+        xsBG = [float(p[0]) for p in X_trace]
+        ysBG = [float(p[1]) for p in X_trace]
+        zsBG = [float(p[2]) for p in X_trace]
         
-        ax.plot(xs, ys, zs, '-k', linewidth=3, markersize=6)
-        ax.plot(xs, ys, zs, 'or', linewidth=3, markersize=6)
+        return [xsHD, ysHD, zsHD, xsHG, ysHG, zsHG, xsBD, ysBD, zsBD, xsBG, ysBG, zsBG, x, y, z]
+    
+    def aff_PosRobot(self, q:[float]):
+        """
+        Affiche le robot en fonction des coordonnés articulaires q = [qHD, qHG, qBD, qBG] 
+        Où : qXY désigne les coordonnés articulaite de la patte XY
+            H -> Haut; B -> Bas
+            D -> Droite; G -> Gauche
+        """
+        fig = plt.figure()
+        ax = Axes3D(fig, auto_add_to_figure=False)
+        ax_echelle = 5
+        ax.axes.set_xlim3d(left=-ax_echelle, right=ax_echelle)
+        ax.axes.set_ylim3d(bottom=-ax_echelle, top=ax_echelle)
+        ax.axes.set_zlim3d(bottom=-2, top=1)
+        fig.add_axes(ax)
+        
+        ax.legend()
+        
+        xsHD, ysHD, zsHD, xsHG, ysHG, zsHG, xsBD, ysBD, zsBD, xsBG, ysBG, zsBG, x, y, z = self.__aff_RobotInt(q)
+        
+        ax.plot(xsHD, ysHD, zsHD, '-k', linewidth=3, markersize=6)
+        ax.plot(xsHD, ysHD, zsHD, 'or', linewidth=3, markersize=6)
+        
+        ax.plot(xsHG, ysHG, zsHG, '-k', linewidth=3, markersize=6)
+        ax.plot(xsHG, ysHG, zsHG, 'or', linewidth=3, markersize=6)
+        
+        ax.plot(xsBD, ysBD, zsBD, '-k', linewidth=3, markersize=6)
+        ax.plot(xsBD, ysBD, zsBD, 'or', linewidth=3, markersize=6)
+        
+        ax.plot(xsBG, ysBG, zsBG, '-k', linewidth=3, markersize=6)
+        ax.plot(xsBG, ysBG, zsBG, 'or', linewidth=3, markersize=6)
         
         corps = [list(zip(x, y, z))]
         ax.add_collection(Poly3DCollection(corps, alpha=0.5))
         ax.scatter([0, 0], [0, 0], [0, 0.01], color="red")
         plt.show()
         
+    def aff_RobotAnim(self, inter_t:float, nb_points:int) -> None:
+        """
+        Affiche une animation de la trajectoire sur un intervalle donné
+        
+        Paramètre : 
+            inter_t : l'intervalle d'affichage
+            nb_points : le nombre de point voulue
+        """
+            
+        for i in range(nb_points):
+            fig = plt.figure()
+            ax = Axes3D(fig, auto_add_to_figure=False)
+            ax_echelle = 5
+            ax.axes.set_xlim3d(left=-ax_echelle, right=ax_echelle)
+            ax.axes.set_ylim3d(bottom=-ax_echelle, top=ax_echelle)
+            ax.axes.set_zlim3d(bottom=-ax_echelle, top=ax_echelle)
+            fig.add_axes(ax)
+            
+            ax.legend()
+            
+            q = list(self.PatteHD.getPosAngMot())+list(self.PatteHG.getPosAngMot())+list(self.PatteBD.getPosAngMot())+list(self.PatteBG.getPosAngMot())
+            xsHD, ysHD, zsHD, xsHG, ysHG, zsHG, xsBD, ysBD, zsBD, xsBG, ysBG, zsBG, x, y, z = self.__aff_RobotInt(q)
+            self.robot_udpate(inter_t)
+            
+            ax.plot(xsHD, ysHD, zsHD, '-k', linewidth=3, markersize=6)
+            ax.plot(xsHD, ysHD, zsHD, 'or', linewidth=3, markersize=6)
+            
+            ax.plot(xsHG, ysHG, zsHG, '-k', linewidth=3, markersize=6)
+            ax.plot(xsHG, ysHG, zsHG, 'or', linewidth=3, markersize=6)
+            
+            ax.plot(xsBD, ysBD, zsBD, '-k', linewidth=3, markersize=6)
+            ax.plot(xsBD, ysBD, zsBD, 'or', linewidth=3, markersize=6)
+            
+            ax.plot(xsBG, ysBG, zsBG, '-k', linewidth=3, markersize=6)
+            ax.plot(xsBG, ysBG, zsBG, 'or', linewidth=3, markersize=6)
+            
+            corps = [list(zip(x, y, z))]
+            ax.add_collection(Poly3DCollection(corps, alpha=0.5))
+            ax.scatter([0, 0], [0, 0], [0, 0.01], color="red")
+            plt.savefig("temp/"+str(i)+".png")
+            plt.close()
+        images = [Image.open("temp/"+str(i)+".png") for i in range(nb_points)]
+        images[0].save("traj.gif", save_all=True, append_images=images[1:], duration=inter_t*nb_points, loop=1)
+
+        
+    def robot_udpate(self, dt:float) -> None:
+        """
+        Fonction d'udpate du robot
+        
+        Paramètre : 
+            dt : l'intervalle de temps entre chaque update
+        """
+            
+        self.PatteHD.patte_udpate(dt)
+        self.PatteHG.patte_udpate(dt)
+        self.PatteBG.patte_udpate(dt)
+        self.PatteBD.patte_udpate(dt)
+        
+        self.PatteBD.signal_setRP(min(self.PatteHD.signal_getTN(), self.PatteBG.signal_getTN()))
+        self.PatteHG.signal_setRP(min(self.PatteHD.signal_getTN(), self.PatteBG.signal_getTN()))
+        
+        self.PatteHD.signal_setRP(min(self.PatteBD.signal_getTN(), self.PatteHG.signal_getTN()))
+        self.PatteBG.signal_setRP(min(self.PatteBD.signal_getTN(), self.PatteHG.signal_getTN()))
+    
+    def robot_setTraj(self, Traj:Trajectoire) -> None:
+        self.PatteHD.traj_Suivie(Traj, decalage=True)
+        self.PatteHG.traj_Suivie(Traj)
+        self.PatteBG.traj_Suivie(Traj, decalage=True)
+        self.PatteBD.traj_Suivie(Traj)
+    
+    def robot_evalTraj(self) -> float:
+        """
+        
+        Evalue la trajectoire actuelle
+
+        Retourne:
+            Le score de la trajectoire
+        """
+    
+    
         

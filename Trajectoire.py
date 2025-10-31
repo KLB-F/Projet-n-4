@@ -16,16 +16,17 @@ class Trajectoire():
             d : la distance entre chaque points de la trajectoire
         """
         
-        self.trajectoire = []
-        self.BP = []
+        self.trajectoire = PointPassages
+        self.BP = BP
         
+        """
         for i in range(len(PointPassages)-2):
             tPlus = self.__InterQuadraPoints(PointPassages[i], PointPassages[i+1], PointPassages[i+2], d)
             self.trajectoire = self.trajectoire + tPlus
             if BP[i] == True and BP[i+1] == True:
                 self.BP = self.BP + [True]*len(tPlus)
             else:
-                self.BP = self.BP + [False]*len(tPlus)
+                self.BP = self.BP + [False]*len(tPlus)"""
                 
     
     @staticmethod
@@ -105,6 +106,9 @@ class Trajectoire():
     
     def getTraj(self):
         return self.trajectoire
+    
+    def getBP(self):
+        return self.BP
     
     def aff_Traj(self):
         """

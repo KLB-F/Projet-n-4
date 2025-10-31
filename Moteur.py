@@ -48,6 +48,9 @@ class Moteur():
             self.q_obj = self.qmin
         else:
             self.q_obj = q_obj
+            
+    def get_PosObj(self):
+        return self.q_obj
     
     def get_PosAng(self):
         """
