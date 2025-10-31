@@ -1,4 +1,4 @@
-# Projet-n-4
+# Projet Robotique
 Code du projet de Robotique sérielle
 
 Objectif : Réaliser la génération de la trajectoire d'un robot quadrupède que nous avons assemblé en vue de son déplacement.
@@ -6,6 +6,7 @@ Objectif : Réaliser la génération de la trajectoire d'un robot quadrupède qu
 Aucune libraire dédiée à la robotique n'est utilisée.
 
 <image src="traj.gif"  />
+<legend>Simulation du robot suivant une trajectoire quelconque</legend>
 
 Réalisation : 
 - Calcul MGI/MGD : ✓ </br>
